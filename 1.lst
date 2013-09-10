@@ -1,0 +1,870 @@
+   1               		.file	"1.c"
+   2               	__SREG__ = 0x3f
+   3               	__SP_H__ = 0x3e
+   4               	__SP_L__ = 0x3d
+   5               	__CCP__  = 0x34
+   6               	__tmp_reg__ = 0
+   7               	__zero_reg__ = 1
+   9               		.text
+  10               	.Ltext0:
+  69               	.global	__vector_3
+  71               	__vector_3:
+   1:1.c           **** 	
+   2:1.c           **** 	
+   3:1.c           **** 	#include <avr/io.h>
+   4:1.c           **** 	#include <avr/interrupt.h>
+   5:1.c           **** 	#include <util/delay.h>	
+   6:1.c           **** 	
+   7:1.c           ****  const unsigned char sin_table[256] = {
+   8:1.c           **** 
+   9:1.c           ****         128,131,134,137,140,143,146,149,152,156,159,162,165,168,171,174,
+  10:1.c           **** 
+  11:1.c           ****         176,179,182,185,188,191,193,196,199,201,204,206,209,211,213,216,
+  12:1.c           **** 
+  13:1.c           ****         218,220,222,224,226,228,230,232,234,236,237,239,240,242,243,245,
+  14:1.c           **** 
+  15:1.c           ****         246,247,248,249,250,251,252,252,253,254,254,255,255,255,255,255,
+  16:1.c           **** 
+  17:1.c           ****         255,255,255,255,255,255,254,254,253,252,252,251,250,249,248,247,
+  18:1.c           **** 
+  19:1.c           ****         246,245,243,242,240,239,237,236,234,232,230,228,226,224,222,220,
+  20:1.c           **** 
+  21:1.c           ****         218,216,213,211,209,206,204,201,199,196,193,191,188,185,182,179,
+  22:1.c           **** 
+  23:1.c           ****         176,174,171,168,165,162,159,156,152,149,146,143,140,137,134,131,
+  24:1.c           **** 
+  25:1.c           ****         128,124,121,118,115,112,109,106,103,99, 96, 93, 90, 87, 84, 81, 
+  26:1.c           **** 
+  27:1.c           ****         79, 76, 73, 70, 67, 64, 62, 59, 56, 54, 51, 49, 46, 44, 42, 39, 
+  28:1.c           **** 
+  29:1.c           ****         37, 35, 33, 31, 29, 27, 25, 23, 21, 19, 18, 16, 15, 13, 12, 10, 
+  30:1.c           **** 
+  31:1.c           ****         9, 8, 7, 6, 5, 4, 3, 3, 2, 1, 1, 0, 0, 0, 0, 0, 
+  32:1.c           **** 
+  33:1.c           ****         0, 0, 0, 0, 0, 0, 1, 1, 2, 3, 3, 4, 5, 6, 7, 8, 
+  34:1.c           **** 
+  35:1.c           ****         9, 10, 12, 13, 15, 16, 18, 19, 21, 23, 25, 27, 29, 31, 33, 35, 
+  36:1.c           **** 
+  37:1.c           ****         37, 39, 42, 44, 46, 49, 51, 54, 56, 59, 62, 64, 67, 70, 73, 76, 
+  38:1.c           **** 
+  39:1.c           ****         79, 81, 84, 87, 90, 93, 96, 99, 103,106,109,112,115,118,121,124};
+  40:1.c           **** 		
+  41:1.c           **** 	 const 	unsigned int random_num[256] = {
+  42:1.c           **** 		89,673,498,670,40,463,475,571,77,688,284,678,168,649,137,52,556,507,
+  43:1.c           **** 		435,777,710,457,229,456,733,70,472,147,94,562,802,262,657,745,669,193,
+  44:1.c           **** 		460,319,359,448,610,47,555,667,801,713,791,263,81,57,593,61,114,812,
+  45:1.c           **** 		177,403,328,700,767,548,349,474,731,190,479,109,100,539,394,544,237,
+  46:1.c           **** 		772,212,217,184,786,308,584,513,293,784,721,284,614,364,491,473,394,
+  47:1.c           **** 		517,519,690,212,92,650,454,394,181,343,321,768,455,751,723,264,678,252,
+  48:1.c           **** 		699,69,504,297,718,366,806,157,796,140,106,185,399,70,247,200,312,687,
+  49:1.c           **** 		494,372,140,287,248,150,275,695,120,213,166,357,284,193,341,105,37,337,
+  50:1.c           **** 		77,388,443,110,317,811,169,388,669,569,731,63,732,294,287,376,47,666,
+  51:1.c           **** 		363,664,65,483,311,544,287,334,384,385,591,616,71,402,778,510,70,353,
+  52:1.c           **** 		727,673,634,402,581,369,197,123,419,85,751,542,243,87,75,583,222,235,577,
+  53:1.c           **** 		90,795,231,780,783,431,320,384,403,148,483,374,622,620,366,712,471,586,595,
+  54:1.c           **** 		498,331,123,340,625,135,507,610,612,450,503,799,644,108,44,421,58,297,812,
+  55:1.c           **** 		808,624,158,427,581,170,330,288,546,667,231,349,717,798,248,797,441,799,657,
+  56:1.c           **** 		639,242};
+  57:1.c           **** 
+  58:1.c           **** 	uint8_t i=0;
+  59:1.c           **** 	
+  60:1.c           **** 	ISR(TIMER2_COMP_vect)
+  61:1.c           **** 	{
+  72               	in r0,__SREG__
+  73               		push r0
+  74               		clr __zero_reg__
+  75 0000 1F92      		push r24
+  76 0002 0F92      		push r25
+  77 0004 0FB6      		push r30
+  78 0006 0F92      		push r31
+  79 0008 1124      	/* prologue: Signal */
+  80 000a 8F93      	/* frame size = 0 */
+  82 000e EF93      	.LM1:
+  83 0010 FF93      		lds r25,i
+  84               		mov r30,r25
+  85               		ldi r31,lo8(0)
+  62:1.c           **** 		PORTD=(sin_table[i]>>1);
+  86               	-(sin_table))
+  87               		sbci r31,hi8(-(sin_table))
+  88 0012 9091 0000 		ld r24,Z
+  89 0016 E92F      		lsr r24
+  90 0018 F0E0      		out 50-32,r24
+  92 001c F040      	.LM2:
+  93 001e 8081      		cpi r25,lo8(-1)
+  94 0020 8695      		brne .L2
+  95 0022 82BB      		sts i,__zero_reg__
+  63:1.c           **** 		if(i==0xFF) i=0;
+  96               	.L2:
+  98 0024 9F3F      	.LM3:
+  99 0026 01F4      		subi r25,lo8(-(1))
+ 100 0028 1092 0000 		sts i,r25
+ 101 002c 00C0      	.L4:
+ 102               	/* epilogue start */
+  64:1.c           **** 		else i++;
+ 103               		68,0,65,.LM4-.LFBB1
+ 104               	.LM4:
+ 105 002e 9F5F      		pop r31
+ 106 0030 9093 0000 		pop r30
+ 107               		pop r25
+ 108               		pop r24
+  65:1.c           **** 	}
+ 109               	0
+ 110               		out __SREG__,r0
+ 111 0034 FF91      		pop r0
+ 112 0036 EF91      		pop __zero_reg__
+ 113 0038 9F91      		reti
+ 115 003c 0F90      	.Lscope1:
+ 117 0040 0F90      	.global	main
+ 119 0044 1895      	main:
+ 121               	.LM5:
+ 122               	.LFBB2:
+ 123               		push r28
+ 124               		push r29
+ 125               	/* prologue: function */
+  66:1.c           **** 
+  67:1.c           **** 
+  68:1.c           **** 	
+  69:1.c           ****  	//***********************Main prog***********************
+  70:1.c           **** 	int main(void)
+  71:1.c           **** 	{
+ 126               	 */
+ 128               	.LM6:
+ 129 0046 CF93      		ldi r25,lo8(-1)
+ 130 0048 DF93      		out 49-32,r25
+ 132               	.LM7:
+  72:1.c           **** 		//sin
+  73:1.c           **** 		DDRD = 0xFF;		
+ 133               	4,lo8(-128)
+ 134               		out 89-32,r24
+ 136 004c 91BB      	.LM8:
+  74:1.c           **** 		TIMSK = (1<<OCIE2);
+ 137               	 r24,lo8(13)
+ 138               		out 69-32,r24
+ 140 0050 89BF      	.LM9:
+  75:1.c           **** 		TCCR2 = (1<<CS22)|(1<<CS20)|(1<<WGM21);   // Clock/1024, 0.001024 seconds per tick
+ 141               	 67-32,r25
+ 143 0052 8DE0      	.LM10:
+ 144 0054 85BD      	/* #APP */
+  76:1.c           **** 		OCR2 = 0xFF;
+ 145               	77 "1.c" 1
+ 146               		sei
+ 147 0056 93BD      	 ;  0 "" 2
+  77:1.c           **** 		sei();
+ 148               	tabn	68,0,80,.LM11-.LFBB2
+ 149               	.LM11:
+ 150               	/* #NOAPP */
+ 151               		ldi r24,lo8(6)
+ 152 0058 7894      		out 55-32,r24
+  78:1.c           **** 		
+  79:1.c           **** 		//noise
+  80:1.c           **** 		DDRB = (1<<1)|(1<<2); 
+ 154               	
+ 155               		ldi r24,lo8(64)
+ 156               		out 79-32,r24
+ 158 005c 87BB      	.LM13:
+  81:1.c           **** 		TCCR1A=(1<<COM1A0); //На выводе OC1A единица, когда OCR1A==TCNT1, восьмибитный ШИМ
+ 159               	 r24,lo8(9)
+ 160               		out 78-32,r24
+ 161 005e 80E4      	.LBB12:
+ 162 0060 8FBD      	.LBB13:
+  82:1.c           **** 		TCCR1B=(1<<CS10)|(1<<WGM12); //Делитель /1,ctc
+ 163               	14:
+ 164               	.LBB15:
+ 166 0064 8EBD      	.Ltext1:
+ 168               	.LM14:
+ 169               		ldi r28,lo8(10000)
+ 170               		ldi r29,hi8(10000)
+ 171               	.L6:
+ 172               	.LBE15:
+   1:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** /* Copyright (c) 2002, Marek Michalkiewicz
+   2:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****    Copyright (c) 2007 Joerg Wunsch
+   3:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****    All rights reserved.
+   4:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** 
+   5:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****    Redistribution and use in source and binary forms, with or without
+   6:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****    modification, are permitted provided that the following conditions are met:
+   7:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** 
+   8:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****    * Redistributions of source code must retain the above copyright
+   9:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****      notice, this list of conditions and the following disclaimer.
+  10:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** 
+  11:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****    * Redistributions in binary form must reproduce the above copyright
+  12:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****      notice, this list of conditions and the following disclaimer in
+  13:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****      the documentation and/or other materials provided with the
+  14:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****      distribution.
+  15:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** 
+  16:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****    * Neither the name of the copyright holders nor the names of
+  17:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****      contributors may be used to endorse or promote products derived
+  18:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****      from this software without specific prior written permission.
+  19:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** 
+  20:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  21:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  22:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  23:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****   ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+  24:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****   LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  25:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****   CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  26:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****   SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  27:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****   INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  28:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****   CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  29:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  30:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****   POSSIBILITY OF SUCH DAMAGE. */
+  31:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** 
+  32:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** /* $Id: delay_basic.h,v 1.1 2007/05/13 21:23:20 joerg_wunsch Exp $ */
+  33:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** 
+  34:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** #ifndef _UTIL_DELAY_BASIC_H_
+  35:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** #define _UTIL_DELAY_BASIC_H_ 1
+  36:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** 
+  37:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** #include <inttypes.h>
+  38:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** 
+  39:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** /** \file */
+  40:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** /** \defgroup util_delay_basic <util/delay_basic.h>: Basic busy-wait delay loops
+  41:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****     \code
+  42:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****     #include <util/delay_basic.h>
+  43:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****     \endcode
+  44:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** 
+  45:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****     The functions in this header file implement simple delay loops
+  46:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****     that perform a busy-waiting.  They are typically used to
+  47:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****     facilitate short delays in the program execution.  They are
+  48:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****     implemented as count-down loops with a well-known CPU cycle
+  49:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****     count per loop iteration.  As such, no other processing can
+  50:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****     occur simultaneously.  It should be kept in mind that the
+  51:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****     functions described here do not disable interrupts.
+  52:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** 
+  53:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****     In general, for long delays, the use of hardware timers is
+  54:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****     much preferrable, as they free the CPU, and allow for
+  55:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****     concurrent processing of other events while the timer is
+  56:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****     running.  However, in particular for very short delays, the
+  57:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****     overhead of setting up a hardware timer is too much compared
+  58:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****     to the overall delay time.
+  59:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** 
+  60:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****     Two inline functions are provided for the actual delay algorithms.
+  61:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** 
+  62:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** */
+  63:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** 
+  64:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** #if !defined(__DOXYGEN__)
+  65:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** static inline void _delay_loop_1(uint8_t __count) __attribute__((always_inline));
+  66:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** static inline void _delay_loop_2(uint16_t __count) __attribute__((always_inline));
+  67:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** #endif
+  68:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** 
+  69:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** /** \ingroup util_delay_basic
+  70:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** 
+  71:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****     Delay loop using an 8-bit counter \c __count, so up to 256
+  72:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****     iterations are possible.  (The value 256 would have to be passed
+  73:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****     as 0.)  The loop executes three CPU cycles per iteration, not
+  74:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****     including the overhead the compiler needs to setup the counter
+  75:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****     register.
+  76:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** 
+  77:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****     Thus, at a CPU speed of 1 MHz, delays of up to 768 microseconds
+  78:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****     can be achieved.
+  79:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** */
+  80:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** void
+  81:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** _delay_loop_1(uint8_t __count)
+  82:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** {
+  83:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** 	__asm__ volatile (
+  84:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** 		"1: dec %0" "\n\t"
+  85:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** 		"brne 1b"
+  86:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** 		: "=r" (__count)
+  87:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** 		: "0" (__count)
+  88:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** 	);
+  89:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** }
+  90:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** 
+  91:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** /** \ingroup util_delay_basic
+  92:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** 
+  93:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****     Delay loop using a 16-bit counter \c __count, so up to 65536
+  94:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****     iterations are possible.  (The value 65536 would have to be
+  95:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****     passed as 0.)  The loop executes four CPU cycles per iteration,
+  96:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****     not including the overhead the compiler requires to setup the
+  97:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****     counter register pair.
+  98:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** 
+  99:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****     Thus, at a CPU speed of 1 MHz, delays of up to about 262.1
+ 100:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****     milliseconds can be achieved.
+ 101:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h ****  */
+ 102:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** void
+ 103:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** _delay_loop_2(uint16_t __count)
+ 104:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** {
+ 105:c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h **** 	__asm__ volatile (
+ 173               	BE13:
+ 174               	.LBE12:
+ 176 0068 D7E2      	.Ltext2:
+ 178               	.LM15:
+ 179               		rcall rand
+ 180               		mov r30,r24
+ 181               		ldi r31,lo8(0)
+ 182               		lsl r30
+ 183               		rol r31
+  83:1.c           **** 		//OCR1A=0x32D;//5kHz
+  84:1.c           **** 		//OCR1A=0x25;//107kHz
+  85:1.c           **** 		// srand(1);
+  86:1.c           **** 		uint8_t g=0;
+  87:1.c           **** 		
+  88:1.c           **** 			while(1)
+  89:1.c           **** 			{
+  90:1.c           **** 			OCR1A=random_num[(uint8_t)rand()];
+ 184               	o8(-(random_num))
+ 185               		sbci r31,hi8(-(random_num))
+ 186 006a 00D0      		ld r24,Z
+ 187 006c E82F      		ldd r25,Z+1
+ 188 006e F0E0      		out (74)+1-32,r25
+ 189 0070 EE0F      		out 74-32,r24
+ 190 0072 FF1F      	.LBB19:
+ 191 0074 E050      	.LBB18:
+ 192 0076 F040      	.LBB17:
+ 193 0078 8081      	.LBB16:
+ 195 007c 9BBD      	.Ltext3:
+ 197               	.LM16:
+ 198               		movw r24,r28
+ 199               	/* #APP */
+ 200               	 ;  105 "c:/winavr-20100110/lib/gcc/../../avr/include/util/delay_basic.h" 1
+ 201               		1: sbiw r24,1
+ 202               		brne 1b
+ 203               	 ;  0 "" 2
+ 204               	/* #NOAPP */
+ 205 0080 CE01      		rjmp .L6
+ 206               	.LBE16:
+ 207               	.LBE17:
+ 208 0082 0197      	.LBE18:
+ 209 0084 01F4      	.LBE19:
+ 211               	.Lscope2:
+ 212 0086 00C0      	.global	sin_table
+ 213               		.data
+ 216               	sin_table:
+ 217               		.byte	-128
+ 218               		.byte	-125
+ 219               		.byte	-122
+ 220               		.byte	-119
+ 221               		.byte	-116
+ 222               		.byte	-113
+ 223               		.byte	-110
+ 224 0000 80        		.byte	-107
+ 225 0001 83        		.byte	-104
+ 226 0002 86        		.byte	-100
+ 227 0003 89        		.byte	-97
+ 228 0004 8C        		.byte	-94
+ 229 0005 8F        		.byte	-91
+ 230 0006 92        		.byte	-88
+ 231 0007 95        		.byte	-85
+ 232 0008 98        		.byte	-82
+ 233 0009 9C        		.byte	-80
+ 234 000a 9F        		.byte	-77
+ 235 000b A2        		.byte	-74
+ 236 000c A5        		.byte	-71
+ 237 000d A8        		.byte	-68
+ 238 000e AB        		.byte	-65
+ 239 000f AE        		.byte	-63
+ 240 0010 B0        		.byte	-60
+ 241 0011 B3        		.byte	-57
+ 242 0012 B6        		.byte	-55
+ 243 0013 B9        		.byte	-52
+ 244 0014 BC        		.byte	-50
+ 245 0015 BF        		.byte	-47
+ 246 0016 C1        		.byte	-45
+ 247 0017 C4        		.byte	-43
+ 248 0018 C7        		.byte	-40
+ 249 0019 C9        		.byte	-38
+ 250 001a CC        		.byte	-36
+ 251 001b CE        		.byte	-34
+ 252 001c D1        		.byte	-32
+ 253 001d D3        		.byte	-30
+ 254 001e D5        		.byte	-28
+ 255 001f D8        		.byte	-26
+ 256 0020 DA        		.byte	-24
+ 257 0021 DC        		.byte	-22
+ 258 0022 DE        		.byte	-20
+ 259 0023 E0        		.byte	-19
+ 260 0024 E2        		.byte	-17
+ 261 0025 E4        		.byte	-16
+ 262 0026 E6        		.byte	-14
+ 263 0027 E8        		.byte	-13
+ 264 0028 EA        		.byte	-11
+ 265 0029 EC        		.byte	-10
+ 266 002a ED        		.byte	-9
+ 267 002b EF        		.byte	-8
+ 268 002c F0        		.byte	-7
+ 269 002d F2        		.byte	-6
+ 270 002e F3        		.byte	-5
+ 271 002f F5        		.byte	-4
+ 272 0030 F6        		.byte	-4
+ 273 0031 F7        		.byte	-3
+ 274 0032 F8        		.byte	-2
+ 275 0033 F9        		.byte	-2
+ 276 0034 FA        		.byte	-1
+ 277 0035 FB        		.byte	-1
+ 278 0036 FC        		.byte	-1
+ 279 0037 FC        		.byte	-1
+ 280 0038 FD        		.byte	-1
+ 281 0039 FE        		.byte	-1
+ 282 003a FE        		.byte	-1
+ 283 003b FF        		.byte	-1
+ 284 003c FF        		.byte	-1
+ 285 003d FF        		.byte	-1
+ 286 003e FF        		.byte	-1
+ 287 003f FF        		.byte	-2
+ 288 0040 FF        		.byte	-2
+ 289 0041 FF        		.byte	-3
+ 290 0042 FF        		.byte	-4
+ 291 0043 FF        		.byte	-4
+ 292 0044 FF        		.byte	-5
+ 293 0045 FF        		.byte	-6
+ 294 0046 FE        		.byte	-7
+ 295 0047 FE        		.byte	-8
+ 296 0048 FD        		.byte	-9
+ 297 0049 FC        		.byte	-10
+ 298 004a FC        		.byte	-11
+ 299 004b FB        		.byte	-13
+ 300 004c FA        		.byte	-14
+ 301 004d F9        		.byte	-16
+ 302 004e F8        		.byte	-17
+ 303 004f F7        		.byte	-19
+ 304 0050 F6        		.byte	-20
+ 305 0051 F5        		.byte	-22
+ 306 0052 F3        		.byte	-24
+ 307 0053 F2        		.byte	-26
+ 308 0054 F0        		.byte	-28
+ 309 0055 EF        		.byte	-30
+ 310 0056 ED        		.byte	-32
+ 311 0057 EC        		.byte	-34
+ 312 0058 EA        		.byte	-36
+ 313 0059 E8        		.byte	-38
+ 314 005a E6        		.byte	-40
+ 315 005b E4        		.byte	-43
+ 316 005c E2        		.byte	-45
+ 317 005d E0        		.byte	-47
+ 318 005e DE        		.byte	-50
+ 319 005f DC        		.byte	-52
+ 320 0060 DA        		.byte	-55
+ 321 0061 D8        		.byte	-57
+ 322 0062 D5        		.byte	-60
+ 323 0063 D3        		.byte	-63
+ 324 0064 D1        		.byte	-65
+ 325 0065 CE        		.byte	-68
+ 326 0066 CC        		.byte	-71
+ 327 0067 C9        		.byte	-74
+ 328 0068 C7        		.byte	-77
+ 329 0069 C4        		.byte	-80
+ 330 006a C1        		.byte	-82
+ 331 006b BF        		.byte	-85
+ 332 006c BC        		.byte	-88
+ 333 006d B9        		.byte	-91
+ 334 006e B6        		.byte	-94
+ 335 006f B3        		.byte	-97
+ 336 0070 B0        		.byte	-100
+ 337 0071 AE        		.byte	-104
+ 338 0072 AB        		.byte	-107
+ 339 0073 A8        		.byte	-110
+ 340 0074 A5        		.byte	-113
+ 341 0075 A2        		.byte	-116
+ 342 0076 9F        		.byte	-119
+ 343 0077 9C        		.byte	-122
+ 344 0078 98        		.byte	-125
+ 345 0079 95        		.byte	-128
+ 346 007a 92        		.byte	124
+ 347 007b 8F        		.byte	121
+ 348 007c 8C        		.byte	118
+ 349 007d 89        		.byte	115
+ 350 007e 86        		.byte	112
+ 351 007f 83        		.byte	109
+ 352 0080 80        		.byte	106
+ 353 0081 7C        		.byte	103
+ 354 0082 79        		.byte	99
+ 355 0083 76        		.byte	96
+ 356 0084 73        		.byte	93
+ 357 0085 70        		.byte	90
+ 358 0086 6D        		.byte	87
+ 359 0087 6A        		.byte	84
+ 360 0088 67        		.byte	81
+ 361 0089 63        		.byte	79
+ 362 008a 60        		.byte	76
+ 363 008b 5D        		.byte	73
+ 364 008c 5A        		.byte	70
+ 365 008d 57        		.byte	67
+ 366 008e 54        		.byte	64
+ 367 008f 51        		.byte	62
+ 368 0090 4F        		.byte	59
+ 369 0091 4C        		.byte	56
+ 370 0092 49        		.byte	54
+ 371 0093 46        		.byte	51
+ 372 0094 43        		.byte	49
+ 373 0095 40        		.byte	46
+ 374 0096 3E        		.byte	44
+ 375 0097 3B        		.byte	42
+ 376 0098 38        		.byte	39
+ 377 0099 36        		.byte	37
+ 378 009a 33        		.byte	35
+ 379 009b 31        		.byte	33
+ 380 009c 2E        		.byte	31
+ 381 009d 2C        		.byte	29
+ 382 009e 2A        		.byte	27
+ 383 009f 27        		.byte	25
+ 384 00a0 25        		.byte	23
+ 385 00a1 23        		.byte	21
+ 386 00a2 21        		.byte	19
+ 387 00a3 1F        		.byte	18
+ 388 00a4 1D        		.byte	16
+ 389 00a5 1B        		.byte	15
+ 390 00a6 19        		.byte	13
+ 391 00a7 17        		.byte	12
+ 392 00a8 15        		.byte	10
+ 393 00a9 13        		.byte	9
+ 394 00aa 12        		.byte	8
+ 395 00ab 10        		.byte	7
+ 396 00ac 0F        		.byte	6
+ 397 00ad 0D        		.byte	5
+ 398 00ae 0C        		.byte	4
+ 399 00af 0A        		.byte	3
+ 400 00b0 09        		.byte	3
+ 401 00b1 08        		.byte	2
+ 402 00b2 07        		.byte	1
+ 403 00b3 06        		.byte	1
+ 404 00b4 05        		.byte	0
+ 405 00b5 04        		.byte	0
+ 406 00b6 03        		.byte	0
+ 407 00b7 03        		.byte	0
+ 408 00b8 02        		.byte	0
+ 409 00b9 01        		.byte	0
+ 410 00ba 01        		.byte	0
+ 411 00bb 00        		.byte	0
+ 412 00bc 00        		.byte	0
+ 413 00bd 00        		.byte	0
+ 414 00be 00        		.byte	0
+ 415 00bf 00        		.byte	1
+ 416 00c0 00        		.byte	1
+ 417 00c1 00        		.byte	2
+ 418 00c2 00        		.byte	3
+ 419 00c3 00        		.byte	3
+ 420 00c4 00        		.byte	4
+ 421 00c5 00        		.byte	5
+ 422 00c6 01        		.byte	6
+ 423 00c7 01        		.byte	7
+ 424 00c8 02        		.byte	8
+ 425 00c9 03        		.byte	9
+ 426 00ca 03        		.byte	10
+ 427 00cb 04        		.byte	12
+ 428 00cc 05        		.byte	13
+ 429 00cd 06        		.byte	15
+ 430 00ce 07        		.byte	16
+ 431 00cf 08        		.byte	18
+ 432 00d0 09        		.byte	19
+ 433 00d1 0A        		.byte	21
+ 434 00d2 0C        		.byte	23
+ 435 00d3 0D        		.byte	25
+ 436 00d4 0F        		.byte	27
+ 437 00d5 10        		.byte	29
+ 438 00d6 12        		.byte	31
+ 439 00d7 13        		.byte	33
+ 440 00d8 15        		.byte	35
+ 441 00d9 17        		.byte	37
+ 442 00da 19        		.byte	39
+ 443 00db 1B        		.byte	42
+ 444 00dc 1D        		.byte	44
+ 445 00dd 1F        		.byte	46
+ 446 00de 21        		.byte	49
+ 447 00df 23        		.byte	51
+ 448 00e0 25        		.byte	54
+ 449 00e1 27        		.byte	56
+ 450 00e2 2A        		.byte	59
+ 451 00e3 2C        		.byte	62
+ 452 00e4 2E        		.byte	64
+ 453 00e5 31        		.byte	67
+ 454 00e6 33        		.byte	70
+ 455 00e7 36        		.byte	73
+ 456 00e8 38        		.byte	76
+ 457 00e9 3B        		.byte	79
+ 458 00ea 3E        		.byte	81
+ 459 00eb 40        		.byte	84
+ 460 00ec 43        		.byte	87
+ 461 00ed 46        		.byte	90
+ 462 00ee 49        		.byte	93
+ 463 00ef 4C        		.byte	96
+ 464 00f0 4F        		.byte	99
+ 465 00f1 51        		.byte	103
+ 466 00f2 54        		.byte	106
+ 467 00f3 57        		.byte	109
+ 468 00f4 5A        		.byte	112
+ 469 00f5 5D        		.byte	115
+ 470 00f6 60        		.byte	118
+ 471 00f7 63        		.byte	121
+ 472 00f8 67        		.byte	124
+ 473 00f9 6A        	.global	random_num
+ 476 00fc 73        	random_num:
+ 477 00fd 76        		.word	89
+ 478 00fe 79        		.word	673
+ 479 00ff 7C        		.word	498
+ 480               		.word	670
+ 481               		.word	40
+ 482               		.word	463
+ 483               		.word	475
+ 484 0100 5900      		.word	571
+ 485 0102 A102      		.word	77
+ 486 0104 F201      		.word	688
+ 487 0106 9E02      		.word	284
+ 488 0108 2800      		.word	678
+ 489 010a CF01      		.word	168
+ 490 010c DB01      		.word	649
+ 491 010e 3B02      		.word	137
+ 492 0110 4D00      		.word	52
+ 493 0112 B002      		.word	556
+ 494 0114 1C01      		.word	507
+ 495 0116 A602      		.word	435
+ 496 0118 A800      		.word	777
+ 497 011a 8902      		.word	710
+ 498 011c 8900      		.word	457
+ 499 011e 3400      		.word	229
+ 500 0120 2C02      		.word	456
+ 501 0122 FB01      		.word	733
+ 502 0124 B301      		.word	70
+ 503 0126 0903      		.word	472
+ 504 0128 C602      		.word	147
+ 505 012a C901      		.word	94
+ 506 012c E500      		.word	562
+ 507 012e C801      		.word	802
+ 508 0130 DD02      		.word	262
+ 509 0132 4600      		.word	657
+ 510 0134 D801      		.word	745
+ 511 0136 9300      		.word	669
+ 512 0138 5E00      		.word	193
+ 513 013a 3202      		.word	460
+ 514 013c 2203      		.word	319
+ 515 013e 0601      		.word	359
+ 516 0140 9102      		.word	448
+ 517 0142 E902      		.word	610
+ 518 0144 9D02      		.word	47
+ 519 0146 C100      		.word	555
+ 520 0148 CC01      		.word	667
+ 521 014a 3F01      		.word	801
+ 522 014c 6701      		.word	713
+ 523 014e C001      		.word	791
+ 524 0150 6202      		.word	263
+ 525 0152 2F00      		.word	81
+ 526 0154 2B02      		.word	57
+ 527 0156 9B02      		.word	593
+ 528 0158 2103      		.word	61
+ 529 015a C902      		.word	114
+ 530 015c 1703      		.word	812
+ 531 015e 0701      		.word	177
+ 532 0160 5100      		.word	403
+ 533 0162 3900      		.word	328
+ 534 0164 5102      		.word	700
+ 535 0166 3D00      		.word	767
+ 536 0168 7200      		.word	548
+ 537 016a 2C03      		.word	349
+ 538 016c B100      		.word	474
+ 539 016e 9301      		.word	731
+ 540 0170 4801      		.word	190
+ 541 0172 BC02      		.word	479
+ 542 0174 FF02      		.word	109
+ 543 0176 2402      		.word	100
+ 544 0178 5D01      		.word	539
+ 545 017a DA01      		.word	394
+ 546 017c DB02      		.word	544
+ 547 017e BE00      		.word	237
+ 548 0180 DF01      		.word	772
+ 549 0182 6D00      		.word	212
+ 550 0184 6400      		.word	217
+ 551 0186 1B02      		.word	184
+ 552 0188 8A01      		.word	786
+ 553 018a 2002      		.word	308
+ 554 018c ED00      		.word	584
+ 555 018e 0403      		.word	513
+ 556 0190 D400      		.word	293
+ 557 0192 D900      		.word	784
+ 558 0194 B800      		.word	721
+ 559 0196 1203      		.word	284
+ 560 0198 3401      		.word	614
+ 561 019a 4802      		.word	364
+ 562 019c 0102      		.word	491
+ 563 019e 2501      		.word	473
+ 564 01a0 1003      		.word	394
+ 565 01a2 D102      		.word	517
+ 566 01a4 1C01      		.word	519
+ 567 01a6 6602      		.word	690
+ 568 01a8 6C01      		.word	212
+ 569 01aa EB01      		.word	92
+ 570 01ac D901      		.word	650
+ 571 01ae 8A01      		.word	454
+ 572 01b0 0502      		.word	394
+ 573 01b2 0702      		.word	181
+ 574 01b4 B202      		.word	343
+ 575 01b6 D400      		.word	321
+ 576 01b8 5C00      		.word	768
+ 577 01ba 8A02      		.word	455
+ 578 01bc C601      		.word	751
+ 579 01be 8A01      		.word	723
+ 580 01c0 B500      		.word	264
+ 581 01c2 5701      		.word	678
+ 582 01c4 4101      		.word	252
+ 583 01c6 0003      		.word	699
+ 584 01c8 C701      		.word	69
+ 585 01ca EF02      		.word	504
+ 586 01cc D302      		.word	297
+ 587 01ce 0801      		.word	718
+ 588 01d0 A602      		.word	366
+ 589 01d2 FC00      		.word	806
+ 590 01d4 BB02      		.word	157
+ 591 01d6 4500      		.word	796
+ 592 01d8 F801      		.word	140
+ 593 01da 2901      		.word	106
+ 594 01dc CE02      		.word	185
+ 595 01de 6E01      		.word	399
+ 596 01e0 2603      		.word	70
+ 597 01e2 9D00      		.word	247
+ 598 01e4 1C03      		.word	200
+ 599 01e6 8C00      		.word	312
+ 600 01e8 6A00      		.word	687
+ 601 01ea B900      		.word	494
+ 602 01ec 8F01      		.word	372
+ 603 01ee 4600      		.word	140
+ 604 01f0 F700      		.word	287
+ 605 01f2 C800      		.word	248
+ 606 01f4 3801      		.word	150
+ 607 01f6 AF02      		.word	275
+ 608 01f8 EE01      		.word	695
+ 609 01fa 7401      		.word	120
+ 610 01fc 8C00      		.word	213
+ 611 01fe 1F01      		.word	166
+ 612 0200 F800      		.word	357
+ 613 0202 9600      		.word	284
+ 614 0204 1301      		.word	193
+ 615 0206 B702      		.word	341
+ 616 0208 7800      		.word	105
+ 617 020a D500      		.word	37
+ 618 020c A600      		.word	337
+ 619 020e 6501      		.word	77
+ 620 0210 1C01      		.word	388
+ 621 0212 C100      		.word	443
+ 622 0214 5501      		.word	110
+ 623 0216 6900      		.word	317
+ 624 0218 2500      		.word	811
+ 625 021a 5101      		.word	169
+ 626 021c 4D00      		.word	388
+ 627 021e 8401      		.word	669
+ 628 0220 BB01      		.word	569
+ 629 0222 6E00      		.word	731
+ 630 0224 3D01      		.word	63
+ 631 0226 2B03      		.word	732
+ 632 0228 A900      		.word	294
+ 633 022a 8401      		.word	287
+ 634 022c 9D02      		.word	376
+ 635 022e 3902      		.word	47
+ 636 0230 DB02      		.word	666
+ 637 0232 3F00      		.word	363
+ 638 0234 DC02      		.word	664
+ 639 0236 2601      		.word	65
+ 640 0238 1F01      		.word	483
+ 641 023a 7801      		.word	311
+ 642 023c 2F00      		.word	544
+ 643 023e 9A02      		.word	287
+ 644 0240 6B01      		.word	334
+ 645 0242 9802      		.word	384
+ 646 0244 4100      		.word	385
+ 647 0246 E301      		.word	591
+ 648 0248 3701      		.word	616
+ 649 024a 2002      		.word	71
+ 650 024c 1F01      		.word	402
+ 651 024e 4E01      		.word	778
+ 652 0250 8001      		.word	510
+ 653 0252 8101      		.word	70
+ 654 0254 4F02      		.word	353
+ 655 0256 6802      		.word	727
+ 656 0258 4700      		.word	673
+ 657 025a 9201      		.word	634
+ 658 025c 0A03      		.word	402
+ 659 025e FE01      		.word	581
+ 660 0260 4600      		.word	369
+ 661 0262 6101      		.word	197
+ 662 0264 D702      		.word	123
+ 663 0266 A102      		.word	419
+ 664 0268 7A02      		.word	85
+ 665 026a 9201      		.word	751
+ 666 026c 4502      		.word	542
+ 667 026e 7101      		.word	243
+ 668 0270 C500      		.word	87
+ 669 0272 7B00      		.word	75
+ 670 0274 A301      		.word	583
+ 671 0276 5500      		.word	222
+ 672 0278 EF02      		.word	235
+ 673 027a 1E02      		.word	577
+ 674 027c F300      		.word	90
+ 675 027e 5700      		.word	795
+ 676 0280 4B00      		.word	231
+ 677 0282 4702      		.word	780
+ 678 0284 DE00      		.word	783
+ 679 0286 EB00      		.word	431
+ 680 0288 4102      		.word	320
+ 681 028a 5A00      		.word	384
+ 682 028c 1B03      		.word	403
+ 683 028e E700      		.word	148
+ 684 0290 0C03      		.word	483
+ 685 0292 0F03      		.word	374
+ 686 0294 AF01      		.word	622
+ 687 0296 4001      		.word	620
+ 688 0298 8001      		.word	366
+ 689 029a 9301      		.word	712
+ 690 029c 9400      		.word	471
+ 691 029e E301      		.word	586
+ 692 02a0 7601      		.word	595
+ 693 02a2 6E02      		.word	498
+ 694 02a4 6C02      		.word	331
+ 695 02a6 6E01      		.word	123
+ 696 02a8 C802      		.word	340
+ 697 02aa D701      		.word	625
+ 698 02ac 4A02      		.word	135
+ 699 02ae 5302      		.word	507
+ 700 02b0 F201      		.word	610
+ 701 02b2 4B01      		.word	612
+ 702 02b4 7B00      		.word	450
+ 703 02b6 5401      		.word	503
+ 704 02b8 7102      		.word	799
+ 705 02ba 8700      		.word	644
+ 706 02bc FB01      		.word	108
+ 707 02be 6202      		.word	44
+ 708 02c0 6402      		.word	421
+ 709 02c2 C201      		.word	58
+ 710 02c4 F701      		.word	297
+ 711 02c6 1F03      		.word	812
+ 712 02c8 8402      		.word	808
+ 713 02ca 6C00      		.word	624
+ 714 02cc 2C00      		.word	158
+ 715 02ce A501      		.word	427
+ 716 02d0 3A00      		.word	581
+ 717 02d2 2901      		.word	170
+ 718 02d4 2C03      		.word	330
+ 719 02d6 2803      		.word	288
+ 720 02d8 7002      		.word	546
+ 721 02da 9E00      		.word	667
+ 722 02dc AB01      		.word	231
+ 723 02de 4502      		.word	349
+ 724 02e0 AA00      		.word	717
+ 725 02e2 4A01      		.word	798
+ 726 02e4 2001      		.word	248
+ 727 02e6 2202      		.word	797
+ 728 02e8 9B02      		.word	441
+ 729 02ea E700      		.word	799
+ 730 02ec 5D01      		.word	657
+ 731 02ee CD02      		.word	639
+ 732 02f0 1E03      		.word	242
+ 733 02f2 F800      	.global	i
+ 734 02f4 1D03      	.global	i
+ 735 02f6 B901      		.section .bss
+ 738 02fc 7F02      	i:
+ 739 02fe F200      		.skip 1,0
+ 743               		.text
+ 745               	.Letext0:
+ 746 0000 00        	.global __do_copy_data
+ 747               	.global __do_clear_bss
+ 748               	...
+DEFINED SYMBOLS
+                            *ABS*:00000000 1.c
+C:\Users\admin\AppData\Local\Temp/ccDUDioc.s:2      *ABS*:0000003f __SREG__
+C:\Users\admin\AppData\Local\Temp/ccDUDioc.s:3      *ABS*:0000003e __SP_H__
+C:\Users\admin\AppData\Local\Temp/ccDUDioc.s:4      *ABS*:0000003d __SP_L__
+C:\Users\admin\AppData\Local\Temp/ccDUDioc.s:5      *ABS*:00000034 __CCP__
+C:\Users\admin\AppData\Local\Temp/ccDUDioc.s:6      *ABS*:00000000 __tmp_reg__
+C:\Users\admin\AppData\Local\Temp/ccDUDioc.s:7      *ABS*:00000001 __zero_reg__
+C:\Users\admin\AppData\Local\Temp/ccDUDioc.s:71     .text:00000000 __vector_3
+C:\Users\admin\AppData\Local\Temp/ccDUDioc.s:745    .bss:00000000 i
+C:\Users\admin\AppData\Local\Temp/ccDUDioc.s:223    .data:00000000 sin_table
+C:\Users\admin\AppData\Local\Temp/ccDUDioc.s:125    .text:00000046 main
+C:\Users\admin\AppData\Local\Temp/ccDUDioc.s:483    .data:00000100 random_num
+
+UNDEFINED SYMBOLS
+rand
+__do_copy_data
+__do_clear_bss
